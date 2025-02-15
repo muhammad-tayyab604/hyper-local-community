@@ -33,16 +33,20 @@ class SellerServicesController extends Controller
             'image' => 'nullable|image|max:2048',
         ]);
 
-        $imagePath = $request->file('image') ? $request->file('image')->store('services', 'public') : null;
+        $service = new Service();
+        $service->name = $request->name;
+        $service->slug = $request->slug;
+        $service->description = $request->description;
+        $service->category_id = $request->category_id;
+        $service->user_id = Auth::id();
+        if ($request->file('image')) {
+            $file = $request->file('image');
+            $filename = date('YmdHi') . $file->getClientOriginalName();
+            $file->move(public_path('Image/service/'), $filename);
+            $service->image = $filename;
+        }
 
-        Service::create([
-            'name' => $request->name,
-            'slug' => $request->slug,
-            'description' => $request->description,
-            'category_id' => $request->category_id,
-            'user_id' => Auth::id(),
-            'image' => $imagePath,
-        ]);
+        $service->save();
 
         return redirect()->route('services.index')->with('success', 'Service added successfully!');
     }
